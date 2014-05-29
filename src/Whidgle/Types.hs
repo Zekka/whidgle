@@ -18,8 +18,6 @@ import Control.Monad.IO.Class (MonadIO)
 import Control.Monad.Reader (MonadReader, Reader, ReaderT, runReaderT)
 import Control.Monad.State (MonadState, StateT, evalStateT)
 
-type Temporal a = Reader Int a
-
 data POI = POI Pos POIMeta
   deriving (Show)
 

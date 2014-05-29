@@ -74,14 +74,14 @@ scoreMeta dist _ (HasHero them) = do
   we <- use activityHero
   return $
     if canFight dist we them
-      then fmap negate (loseItAll them)
+      then negative (loseItAll them)
       else loseItAll we
 
 scoreMeta dist acq (HasMine) = do
   we <- use activityHero
   return $ if canTakeMine dist we
     -- give mines a slight positive score all the time if we can take them
-    then temporal (\t -> if t >= acq then gold 1 else gold 0.1)
+    then timespan (gold 0.1) acq (acq + nearFuture) (constant (gold 1))
     -- but a major loss if we'd just die
     else loseItAll we
 
@@ -90,18 +90,18 @@ scoreMeta dist acq (HasTavern) = do
   return $
     if needsDrink dist we
       -- if we need a drink, then we save all of our gold by going there
-      then fmap negate (loseItAll we)
+      then negative (loseItAll we)
       else
         if we^.heroLife == 100
           -- if we're at full life, then here's a huge penalty to keep us from
           -- hanging around
           then (loseItAll we)
           -- otherwise, let's just think in terms of the actual penalty
-          else spike acq 0 $ gold (-2)
+          else spike 0 acq $ gold (-2)
 
 -- Figures out how much score we lose if we lose all mines.
 loseItAll :: Hero -> Temporal Int
-loseItAll our = constantly (-(gold . fromIntegral $ (our^.heroMineCount)))
+loseItAll our = constant (-(gold . fromIntegral $ (our^.heroMineCount)))
 
 -- Figures out the score difference associated with a given gold value.
 -- (TODO: Can we make this as generic as Num a => a -> Int without introducing

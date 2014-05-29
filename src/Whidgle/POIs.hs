@@ -40,16 +40,17 @@ scorePOI (POI location inner) = do
       let acqTime = time + distance r
       -- determine our competition
       competition <- fmap
-        ( map (^.heroId)
         -- who can't we fight?
-        . filter (not . (canFight (distance r) we))
+        ( filter (not . (canFight (distance r) we))
         ) otherHeroes
       routes <- use $ activityGame.gameCompMap
       let
         lengths =
           -- who's reasonably close when they pathfind to us?
           ( filter (< reasonablyClose)
-          . map (maybe overwhelming distance . ($ location) . (routes M.!))
+          -- below heuristic is too expensive
+          -- . map (maybe overwhelming distance . ($ location) . (routes M.!) . (^.heroId))
+          . map (manhattan location . (^.heroPos))
           ) competition
 
       scoreBasic <- scoreMeta (distance r) acqTime inner

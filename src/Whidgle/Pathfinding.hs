@@ -5,7 +5,7 @@
  -}
 module Whidgle.Pathfinding
 ( mapFrom
-, distance
+, distance, manhattan
 , follow
 , approach
 ) where

@@ -55,14 +55,12 @@ scorePOI (POI location inner) = do
 
       scoreBasic <- scoreMeta (distance r) acqTime inner
 
-      -- start with the expected value of wherever we're going
-      return $ overTime time (min nearFuture (maxTime - time)) scoreBasic +
-        -- modifier for whether they can get us:
+      return $ overTime time (min nearFuture (maxTime - time)) $
         if (inner /= HasTavern) && any (< distance r + 1) lengths
           -- they can get us, so we lose our points
           then loseItAll we
           -- otherwise, nothing changes
-          else 0
+          else scoreBasic
 
   -- If the route's impossible, very high constant cost -- otherwise, figure out
   -- how feasible it is.
@@ -72,11 +70,11 @@ scorePOI (POI location inner) = do
 -- specific score to a more general one based on the position of the POI and its
 -- accessibility.
 scoreMeta :: Int -> Int -> POIMeta -> Whidgle (Temporal Int)
-scoreMeta dist acq (HasHero them) = do
+scoreMeta dist _ (HasHero them) = do
   we <- use activityHero
-  return . spike acq 0 $
+  return $
     if canFight dist we them
-      then -(loseItAll them)
+      then fmap negate (loseItAll them)
       else loseItAll we
 
 scoreMeta dist acq (HasMine) = do
@@ -85,25 +83,25 @@ scoreMeta dist acq (HasMine) = do
     -- give mines a slight positive score all the time if we can take them
     then temporal (\t -> if t >= acq then gold 1 else gold 0.1)
     -- but a major loss if we'd just die
-    else spike acq (gold 0) $ loseItAll we
+    else loseItAll we
 
 scoreMeta dist acq (HasTavern) = do
   we <- use activityHero
-  return . spike acq 0 $
+  return $
     if needsDrink dist we
       -- if we need a drink, then we save all of our gold by going there
-      then -(loseItAll we)
+      then fmap negate (loseItAll we)
       else
         if we^.heroLife == 100
           -- if we're at full life, then here's a huge penalty to keep us from
           -- hanging around
           then (loseItAll we)
           -- otherwise, let's just think in terms of the actual penalty
-          else gold (-2)
+          else spike acq 0 $ gold (-2)
 
 -- Figures out how much score we lose if we lose all mines.
-loseItAll :: Hero -> Int
-loseItAll our = -(gold . fromIntegral $ (our^.heroMineCount))
+loseItAll :: Hero -> Temporal Int
+loseItAll our = constantly (-(gold . fromIntegral $ (our^.heroMineCount)))
 
 -- Figures out the score difference associated with a given gold value.
 -- (TODO: Can we make this as generic as Num a => a -> Int without introducing

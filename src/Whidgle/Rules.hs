@@ -16,7 +16,7 @@ reasonablyClose = 10
 
 -- The number of turns to plan for in the future.
 nearFuture :: Int
-nearFuture = 300 -- currently: plan forever
+nearFuture = 30 
 
 -- Constants dealing to avoidance of enemies.
 attackDamage, wiggleRoom, gobboRoom, tavernRoom :: Int

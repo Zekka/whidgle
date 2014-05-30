@@ -60,7 +60,7 @@ bot = Bot
         ) =<< getPOIs
 
     sc <- scorePOI p
-    if True {- sc > 0 -} then do
+    if sc > 0 then do
       lputs $ "targeting " ++ showPOI meta ++ " (" ++ show target ++ ")"
       route <- approach target
       process meta route

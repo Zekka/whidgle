@@ -123,7 +123,7 @@ getPOIs = do
     -- include all heroes that aren't us
     [ map poiHero heroes
     -- include any mines we don't own
-    -- , seek (const HasMine) (notOurMine us) board
+    , seek (const HasMine) (notOurMine us) board
     -- include any taverns
     , seek (const HasTavern) isTavern board
     ]

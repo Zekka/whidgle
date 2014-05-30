@@ -17,9 +17,12 @@ import qualified Data.Map as M
 import qualified Data.PSQueue as PQ
 import qualified Data.Set as S
 
+-- this is basically another flavor of Maybe
 data Infinite a = Only a | Infinity
   deriving (Eq, Ord, Show)
 
+-- these rules are screwy, so try not to think about them too hard
+-- (PLEASE do not try to pull out my Infinite type for general use!)
 instance Num a => Num (Infinite a) where
   Infinity + _ = Infinity
   _ + Infinity = Infinity

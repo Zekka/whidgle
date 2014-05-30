@@ -92,16 +92,17 @@ scoreMeta dist acq (HasMine) = do
 scoreMeta dist acq (HasTavern) = do
   we <- use $ session.activityHero
   return $
-    if needsDrink dist we
-      -- if we need a drink, then we save all of our gold by going there
-      then negative (loseItAll we)
-      else
-        if we^.heroLife >= tavernAvoid
-          -- if we're at full life, then here's a huge penalty to keep us from
-          -- hanging around
-          then (loseItAll we)
-          -- otherwise, let's just think in terms of the actual penalty
-          else spike 0 acq $ gold (-2)
+    case () of
+     _-- if we need a drink, then we save all of our gold by going there
+      | needsDrink dist we -> negative (loseItAll we)
+      -- if we're at full life, then here's a huge penalty to keep us from
+      -- hanging around
+      | we^.heroLife >= tavernAvoid ->
+        loseItAll we
+      -- if we're far away then we'd be better off being near, given nothing else to do
+      | dist > 1 -> constant (gold 0.1)
+      -- let's just think in terms of the actual penalty
+      | otherwise -> spike 0 acq $ gold (-2)
 
 -- Figures out how much score we lose if we lose all mines.
 loseItAll :: Hero -> Temporal Int

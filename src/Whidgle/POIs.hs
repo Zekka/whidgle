@@ -55,7 +55,7 @@ scorePOI (POI location inner) = do
       scoreBasic <- scoreMeta (distance r) acqTime inner
 
       return $ overTime time (min nearFuture (maxTime - time)) $
-        if any (< distance r + 1) lengths
+        if any (< distance r + 2) lengths -- + 2 -- assume the action takes one turn
           -- they can get us, so we lose our points
           then loseItAll we
           -- otherwise, nothing changes

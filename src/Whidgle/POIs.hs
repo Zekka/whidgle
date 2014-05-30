@@ -13,6 +13,7 @@ import Control.Lens
 
 import Data.Function
 import qualified Data.Map as M
+import Data.Maybe
 
 import Whidgle.Board
 import Whidgle.Pathfinding
@@ -30,20 +31,20 @@ distPOI (POI location _) = do
 scorePOI :: POI -> Whidgle Int
 scorePOI (POI location inner) = do
   route <- approach location
-  time <- use $ activityGame.gameTurn
-  maxTime <- use $ activityGame.gameMaxTurns
+  time <- use $ session.activityGame.gameTurn
+  maxTime <- use $ session.activityGame.gameMaxTurns
 
   -- This is what we'll do to think about the route we find
   let
     continue r = do
-      we <- use activityHero
+      we <- use $ session.activityHero
       let acqTime = time + distance r
       -- determine our competition
       competition <- fmap
         -- who can't we fight?
         ( filter (not . (canFight (distance r) we))
         ) otherHeroes
-      routes <- use $ activityGame.gameCompMap
+      routes <- use $ session.activityGame.gameCompMap
       let
         lengths =
           -- who's reasonably close when they pathfind to us?
@@ -70,14 +71,18 @@ scorePOI (POI location inner) = do
 -- accessibility.
 scoreMeta :: Int -> Int -> POIMeta -> Whidgle (Temporal Int)
 scoreMeta dist _ (HasHero them) = do
-  we <- use activityHero
-  return $
-    if canFight dist we them && dist < reasonablyClose
-      then negative (loseItAll them)
-      else loseItAll we
+  we <- use $ session.activityHero
+  if canFight dist we them && dist < reasonablyClose
+    then do
+      ratio <- use $ internal.avoidanceRatios.at (them^.heroId).to (fromMaybe (0, 1))
+      -- has attacking them worked well in the past?
+      return $ if dist > 1 && shouldAttackRatio ratio
+        then negative (loseItAll them)
+        else constant 0 -- we just waste time if we pursue them
+    else return $ loseItAll we
 
 scoreMeta dist acq (HasMine) = do
-  we <- use activityHero
+  we <- use $ session.activityHero
   return $ if canTakeMine dist we
     -- give mines a slight positive score all the time if we can take them
     then timespan (gold 0.1) acq (acq + nearFuture) (constant (gold 1))
@@ -85,7 +90,7 @@ scoreMeta dist acq (HasMine) = do
     else loseItAll we
 
 scoreMeta dist acq (HasTavern) = do
-  we <- use activityHero
+  we <- use $ session.activityHero
   return $
     if needsDrink dist we
       -- if we need a drink, then we save all of our gold by going there
@@ -111,9 +116,9 @@ gold = (*10) . floor
 -- Reads the board and determine what POIs are out there.
 getPOIs :: Whidgle [POI]
 getPOIs = do
-  us <- use activityHero
+  us <- use $ session.activityHero
   heroes <- otherHeroes
-  board <- use $ activityGame.gameBoard
+  board <- use $ session.activityGame.gameBoard
   return $ concat
     -- include all heroes that aren't us
     [ map poiHero heroes
@@ -143,7 +148,7 @@ getPOIs = do
 
 otherHeroes :: Whidgle [Hero]
 otherHeroes = do
-  us <- use activityHero
-  heroes <- use $ activityGame.gameHeroes
+  us <- use $ session.activityHero
+  heroes <- use $ session.activityGame.gameHeroes
   -- other heroes are any heroes whose hero ID isn't ours
   return (filter (((/=) `on` (^.heroId)) us) heroes)

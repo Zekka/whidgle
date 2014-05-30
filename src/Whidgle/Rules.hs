@@ -8,6 +8,8 @@ module Whidgle.Rules where
 
 import Control.Lens
 
+import Data.Function
+
 import Whidgle.Types
 
 -- How many steps away an opponent can be before we consider the possibility of attack behavior.
@@ -54,3 +56,7 @@ canTakeMine dist us =
 -- Think of it as an unenforced ceiling.
 overwhelming :: Int
 overwhelming = 1000
+
+-- returns true if we should attack something given their current avoidance ratio
+shouldAttackRatio :: (Int, Int) -> Bool
+shouldAttackRatio = (<0.3) . uncurry ((/) `on` fromIntegral) -- require 3/10 misses at most

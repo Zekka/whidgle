@@ -44,7 +44,7 @@ cmd = subparser
 
 runCmd :: Cmd -> IO ()
 runCmd c  = do
-    s <- runWhidgle (cmdSettings c) undefined $
+    s <- runWhidgle (cmdSettings c) (BotState undefined undefined) $
         case c of
             (Training _ t b) -> playTraining t b bot
             (Arena _)        -> playArena bot

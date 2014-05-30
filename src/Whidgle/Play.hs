@@ -10,7 +10,6 @@ module Whidgle.Play
 ) where
 
 import Control.Lens
-import Control.Monad.State
 
 import Whidgle.Api
 import Whidgle.Types
@@ -28,7 +27,7 @@ playArena = playMain startArena
 playMain :: Whidgle Activity -> Bot -> Whidgle Activity
 playMain start b = do
   a <- start
-  put a
+  session .= a
   initialize b
   playLoop b a
 
@@ -38,6 +37,6 @@ playLoop bot ac =
   if ac^.activityGame.gameFinished
     then return ac
     else do
-      put ac
+      session .= ac
       newActivity <- turn bot >>= move ac
       playLoop bot newActivity

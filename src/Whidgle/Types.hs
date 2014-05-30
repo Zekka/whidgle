@@ -40,18 +40,29 @@ data Settings = Settings
   , _settingsUrl :: Text
   } deriving (Show, Eq)
 
-newtype Whidgle a = Whidgle { unWhidgle :: StateT Activity (ReaderT Settings IO) a }
+newtype Whidgle a = Whidgle { unWhidgle :: StateT BotState (ReaderT Settings IO) a }
   deriving
   ( Functor, Applicative, Monad
-  , MonadReader Settings, MonadState Activity, MonadIO
+  , MonadReader Settings, MonadState BotState, MonadIO
   )
 
-runWhidgle :: Settings -> Activity -> Whidgle a -> IO a
+runWhidgle :: Settings -> BotState -> Whidgle a -> IO a
 runWhidgle s st = flip runReaderT s . flip evalStateT st . unWhidgle
 
 data Bot = Bot
   { initialize :: Whidgle ()
   , turn :: Whidgle Dir
+  }
+
+data BotState = BotState
+  { _session :: Activity -- more concise, even if it breaks convention
+  , _internal :: Internal
+  }
+
+data Internal = Internal
+  { _avoidanceRatios :: M.Map HeroId (Int, Int)
+  , _lastDistances :: M.Map HeroId Int
+  , _target :: Maybe HeroId
   }
 
 data Activity = Activity
@@ -119,16 +130,18 @@ makeLenses ''Game
 makeLenses ''Hero
 makeLenses ''Board
 makeLenses ''Pos
+makeLenses ''BotState
+makeLenses ''Internal
 
 gameCompMap = singular (gameMaybeCompMap._Just)
 activityHeroMap hId = activityGame.gameCompMap.at hId
 
 -- unlensy getters
 -- these are hard to define as lenses and we never need to use them as setters
-fetchActivityOurMap :: Activity -> RouteMap
-fetchActivityOurMap game =
+fetchOurMap :: BotState -> RouteMap
+fetchOurMap game =
   let
-  am = game^.activityGame.gameCompMap
-  us = _heroId (_activityHero game)
+  am = game^.session.activityGame.gameCompMap
+  us = _heroId (game^.session.activityHero)
   in
   am M.! us

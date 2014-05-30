@@ -81,7 +81,7 @@ distance (Route ps) = length ps
 follow :: Route -> Whidgle Dir
 follow (Route []) = return Stay
 follow (Route (Pos nextX nextY:_)) = do
-  (Pos x y) <- use $ activityHero.heroPos
+  (Pos x y) <- use $ session.activityHero.heroPos
   return $ case (nextX - x, nextY - y) of
     (-1, 0) -> North
     ( 1, 0) -> South
@@ -91,4 +91,4 @@ follow (Route (Pos nextX nextY:_)) = do
 
 -- Determines the best route to a given location from the current position.
 approach :: Pos -> Whidgle (Maybe Route)
-approach location = fmap ($ location) (gets fetchActivityOurMap)
+approach location = fmap ($ location) (gets fetchOurMap)

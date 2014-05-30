@@ -49,8 +49,9 @@ scorePOI (POI location inner) = do
         lengths =
           -- who's reasonably close when they pathfind to us?
           ( filter (< reasonablyClose)
-          -- below heuristic is too expensive
           . map (maybe overwhelming distance . ($ location) . (routes M.!) . (^.heroId))
+          -- and is also actually here
+          . filter (not . (^.heroCrashed))
           ) competition
 
       scoreBasic <- scoreMeta (distance r) acqTime inner

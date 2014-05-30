@@ -8,6 +8,8 @@ import Data.Text (pack, unpack)
 
 import Options.Applicative
 
+import Network.Socket
+
 import Whidgle.Bot
 import Whidgle.Play
 import Whidgle.Types

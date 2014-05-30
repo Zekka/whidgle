@@ -73,7 +73,7 @@ scoreMeta :: Int -> Int -> POIMeta -> Whidgle (Temporal Int)
 scoreMeta dist _ (HasHero them) = do
   we <- use activityHero
   return $
-    if canFight dist we them
+    if canFight dist we them && dist < reasonablyClose
       then negative (loseItAll them)
       else loseItAll we
 

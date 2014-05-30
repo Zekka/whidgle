@@ -120,6 +120,8 @@ makeLenses ''Hero
 makeLenses ''Board
 makeLenses ''Pos
 
+activityHeroMap hId = activityGame.gameCompMap.at hId
+
 -- unlensy getters
 -- these are hard to define as lenses and we never need to use them as setters
 fetchActivityOurMap :: Activity -> RouteMap

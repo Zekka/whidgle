@@ -59,7 +59,7 @@ overwhelming = 1000
 
 -- returns true if we should attack something given their current avoidance ratio
 shouldAttackRatio :: (Int, Int) -> Bool
-shouldAttackRatio = (<0.3) . uncurry ((/) `on` fromIntegral) -- require 3/10 misses at most
+shouldAttackRatio = (<0.7) . uncurry ((/) `on` fromIntegral) -- require 7/10 misses at most
 
 initialAvoidanceRatio :: (Int, Int)
-initialAvoidanceRatio = (0, 3) -- begin assuming we've successfully attacked thrice
+initialAvoidanceRatio = (0, 2) -- begin assuming we've successfully attacked twice

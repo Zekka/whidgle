@@ -50,7 +50,7 @@ runCmd c  = do
     putStrLn $ "Game finished: " ++ unpack (s^.activityViewUrl)
 
 main :: IO ()
-main =
+main = withSocketsDo $
     execParser opts >>= runCmd
   where
     opts = info (cmd <**> helper) idm

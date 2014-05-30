@@ -49,14 +49,13 @@ scorePOI (POI location inner) = do
           -- who's reasonably close when they pathfind to us?
           ( filter (< reasonablyClose)
           -- below heuristic is too expensive
-          -- . map (maybe overwhelming distance . ($ location) . (routes M.!) . (^.heroId))
-          . map (manhattan location . (^.heroPos))
+          . map (maybe overwhelming distance . ($ location) . (routes M.!) . (^.heroId))
           ) competition
 
       scoreBasic <- scoreMeta (distance r) acqTime inner
 
       return $ overTime time (min nearFuture (maxTime - time)) $
-        if (inner /= HasTavern) && any (< distance r + 1) lengths
+        if any (< distance r + 1) lengths
           -- they can get us, so we lose our points
           then loseItAll we
           -- otherwise, nothing changes

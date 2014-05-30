@@ -10,7 +10,7 @@ module Whidgle.Api
 , move
 ) where
 
-import Control.Applicative ((<$>), (<*>))
+import Control.Applicative ((<$>), (<*>), pure)
 import Control.Monad.Reader
 import Control.Lens hiding ((.=))
 
@@ -82,7 +82,9 @@ request url val = do
   jsonBody = RequestBodyLBS . encode
   decodeBody body = case eitherDecode body of
     Left e  -> error $ "request: unable to decode state: " ++ e ++ "; " ++ show body
-    Right s -> s
+    Right s -> s & activityGame.gameMaybeCompMap .~
+      -- finally hack the generated maps into the game state
+      (Just $ generateMaps s (s^.activityGame.gameHeroes))
 
   -- Adds our key to the POSTed object.
   injectKey (Object a) k =
@@ -148,7 +150,7 @@ instance FromJSON Game where
     <*> o .: "finished"
 
     -- Hack: includes the generated maps in the board state so that they're cached
-    <*> (generateMaps <$> (o .: "board") <*> (o .: "heroes"))
+    <*> pure Nothing
 
   parseJSON _ = mzero
 

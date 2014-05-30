@@ -72,7 +72,7 @@ data Game = Game
   , _gameBoard    :: Board
   , _gameFinished :: Bool
 
-  , _gameCompMap  :: CompositeMap
+  , _gameMaybeCompMap  :: Maybe CompositeMap
   }
 
 newtype HeroId = HeroId Int
@@ -120,6 +120,7 @@ makeLenses ''Hero
 makeLenses ''Board
 makeLenses ''Pos
 
+gameCompMap = singular (gameMaybeCompMap._Just)
 activityHeroMap hId = activityGame.gameCompMap.at hId
 
 -- unlensy getters

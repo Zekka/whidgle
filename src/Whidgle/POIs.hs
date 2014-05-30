@@ -47,13 +47,18 @@ scorePOI (POI location inner) = do
       routes <- use $ session.activityGame.gameCompMap
       let
         lengths =
-          -- who's reasonably close when they pathfind to us?
-          ( filter (< reasonablyClose)
-          . map (maybe overwhelming distance . ($ location) . (routes M.!) . (^.heroId))
+          -- who's reasonably close to us and the location when they pathfind?
+          ( filter (all (< reasonablyClose))
+          . map (\x ->
+            let
+            nearTo place =
+              maybe overwhelming distance . ($ place) . (routes M.!) . (^.heroId) $ x
+            in
+            [nearTo location, nearTo (we^.heroPos)]
+          )
           -- and is also actually here
-          . filter (not . (^.heroCrashed))
+          . not (^.heroCrashed)
           ) competition
-
       scoreBasic <- scoreMeta (distance r) acqTime inner
 
       return $ overTime time (min nearFuture (maxTime - time)) $

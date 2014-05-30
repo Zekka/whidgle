@@ -92,7 +92,7 @@ scoreMeta dist acq (HasTavern) = do
       -- if we need a drink, then we save all of our gold by going there
       then negative (loseItAll we)
       else
-        if we^.heroLife == 100
+        if we^.heroLife >= tavernAvoid
           -- if we're at full life, then here's a huge penalty to keep us from
           -- hanging around
           then (loseItAll we)

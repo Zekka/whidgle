@@ -16,14 +16,15 @@ reasonablyClose = 10
 
 -- The number of turns to plan for in the future.
 nearFuture :: Int
-nearFuture = 30 
+nearFuture = 30
 
 -- Constants dealing to avoidance of enemies.
-attackDamage, wiggleRoom, gobboRoom, tavernRoom :: Int
+attackDamage, wiggleRoom, gobboRoom, tavernRoom, tavernAvoid :: Int
 attackDamage = 20 -- assume attacks do at least this much damage
 wiggleRoom = 10 -- don't fight without at least this much wiggle-room
 gobboRoom = 10 -- with less than this health, avoid gobbos
-tavernRoom = 99 -- with less than this health, drink when near a tavern
+tavernRoom = 90 -- with less than this health, drink when near a tavern
+tavernAvoid = 95 -- with more than this health, never drink near a tavern
 
 -- Determine whether we need a drink.
 needsDrink :: Int -> Hero -> Bool

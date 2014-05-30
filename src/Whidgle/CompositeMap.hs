@@ -15,8 +15,8 @@ import Whidgle.Pathfinding
 import Whidgle.Types
 
 -- Generates a RouteMap for every hero, caching its contents.
-generateMaps :: Board -> [Hero] -> CompositeMap
-generateMaps board heroes = M.fromList $ parMap rpar makeRoute heroes
+generateMaps :: Activity -> [Hero] -> CompositeMap
+generateMaps act heroes = M.fromList $ parMap rpar makeRoute heroes
   where
-  makeRoute (Hero {_heroId = hId, _heroPos = hPos}) =
-    (hId, board `mapFrom` hPos)
+  makeRoute h@(Hero {_heroId = hId, _heroPos = hPos}) =
+    (hId, mapFrom act h hPos)

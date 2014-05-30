@@ -81,7 +81,7 @@ request url val = do
   where
   jsonBody = RequestBodyLBS . encode
   decodeBody body = case eitherDecode body of
-    Left e  -> error $ "request: unable to decode state: " ++ e
+    Left e  -> error $ "request: unable to decode state: " ++ e ++ "; " ++ show body
     Right s -> s
 
   -- Adds our key to the POSTed object.

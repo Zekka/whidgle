@@ -18,7 +18,7 @@ reasonablyClose = 10
 
 -- The number of turns to plan for in the future.
 nearFuture :: Int
-nearFuture = 30
+nearFuture = 300
 
 -- Constants dealing to avoidance of enemies.
 attackDamage, wiggleRoom, gobboRoom, tavernRoom, tavernAvoid :: Int
@@ -60,3 +60,6 @@ overwhelming = 1000
 -- returns true if we should attack something given their current avoidance ratio
 shouldAttackRatio :: (Int, Int) -> Bool
 shouldAttackRatio = (<0.3) . uncurry ((/) `on` fromIntegral) -- require 3/10 misses at most
+
+initialAvoidanceRatio :: (Int, Int)
+initialAvoidanceRatio = (0, 3) -- begin assuming we've successfully attacked thrice

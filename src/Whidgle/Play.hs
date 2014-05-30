@@ -13,6 +13,7 @@ import Control.Lens
 
 import Whidgle.Api
 import Whidgle.Types
+import Whidgle.Util
 
 -- Starts to run training matches with a bot,
 -- possibly with a fixed turn count or board.

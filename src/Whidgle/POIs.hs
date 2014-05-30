@@ -74,7 +74,7 @@ scoreMeta dist _ (HasHero them) = do
   we <- use $ session.activityHero
   if canFight dist we them && dist < reasonablyClose
     then do
-      ratio <- use $ internal.avoidanceRatios.at (them^.heroId).to (fromMaybe (0, 1))
+      ratio <- use $ internal.avoidanceRatios.at (them^.heroId).to (fromMaybe initialAvoidanceRatio)
       -- has attacking them worked well in the past?
       return $ if dist > 1 && shouldAttackRatio ratio
         then negative (loseItAll them)
@@ -123,7 +123,7 @@ getPOIs = do
     -- include all heroes that aren't us
     [ map poiHero heroes
     -- include any mines we don't own
-    , seek (const HasMine) (notOurMine us) board
+    -- , seek (const HasMine) (notOurMine us) board
     -- include any taverns
     , seek (const HasTavern) isTavern board
     ]

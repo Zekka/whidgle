@@ -25,6 +25,7 @@ import Whidgle.Pathfinding
 import Whidgle.POIs
 import Whidgle.Rules
 import Whidgle.Types
+import Whidgle.Util
 
 -- Whidgle's main loop.
 bot :: Bot
@@ -38,8 +39,9 @@ bot = Bot
         }
 
   , turn =
-      -- try to run the main body of the bot, but time out if it takes too long and result in Stay
-      fromMaybe Stay <$> ioHoistWhidgle (timeout timeLimit) (botMain undefined)
+      -- timeouts fuck with State, so they're disabled for now
+      -- fromMaybe Stay <$> ioHoistWhidgle (timeout timeLimit) (botMain undefined)
+      botMain undefined
   }
   where
   -- time limit: .5sec
@@ -47,42 +49,66 @@ bot = Bot
   -- parameter is used to maintain laziness
   -- (yes, this is a hack)
   botMain _ = do
-    (Just (POI target meta)) <-
+    turnNo <- use $ session.activityGame.gameTurn
+    lputs $ "-- turn " ++ show (turnNo `div` 4) ++ " (" ++ show (turnNo `mod` 4) ++ ") --"
+
+    (Just p@(POI target meta)) <-
       -- find the best POI first by score and then by distnace
       maximumByM
         (  comparingM scorePOI
         <> comparingM (fmap negate . distPOI)
         ) =<< getPOIs
 
-    route <- approach target
-    process meta route
+    sc <- scorePOI p
+    if True {- sc > 0 -} then do
+      lputs $ "targeting " ++ showPOI meta ++ " (" ++ show target ++ ")"
+      route <- approach target
+      process meta route
 
-    -- if the route worked, follow it -- otherwise, stay
-    maybe (return Stay) follow route
+      -- if the route worked, follow it -- otherwise, stay
+      result <- maybe (return Stay) follow route
+      return result
+    else do
+      lputs $ "no target; staying"
+      return Stay -- we don't need to do things that just get us killed
+
+  showPOI (HasTavern) = "a tavern"
+  showPOI (HasMine) = "a mine"
+  showPOI (HasHero (Hero { _heroName = hn})) = unpack hn
 
   -- update internal state based on selected POI
-  process (HasHero (Hero {_heroId = hId})) route = do
+  process (HasHero (Hero {_heroId = hId, _heroName = hn})) route = do
     let expandDist = fromMaybe overwhelming
     let len = expandDist (fmap distance route)
     -- check if we were avoided
     tar <- use (internal.target)
-    flip (maybe (return ())) tar $ \t -> do
-      lastDist <- use (internal.lastDistances.at hId.to expandDist)
+    flip (maybe (lputs "no previous player target -- skipping target update logic")) tar $ \t -> do
+      lastDist <- use $ internal.lastDistances.at hId.to expandDist
+      let itHasAvoidedMe = t == hId && len >= lastDist
+      lputs $ "it has" ++ (if itHasAvoidedMe then " not " else " ") ++ "avoided me"
+
       internal.avoidanceRatios.at t %=
         let
         modifier = Just .
-          if (t == hId && len >= lastDist)
+          if itHasAvoidedMe
             then \(x, y) -> (x + 1, y + 1) -- it's further or as far -- one more avoidance
             else \(x, y) -> (x, y + 1) -- it's the same -- one less avoidance
-        in maybe (modifier (0, 0)) modifier
+        in maybe (modifier initialAvoidanceRatio) modifier
+
+      ar <- use $ internal.avoidanceRatios.at t
+      lputs $ "current avoidance ratio " ++ show ar
 
     -- update internals
+    lputs $ "updating player target (" ++ unpack hn ++ ")"
     internal.target .= Just hId
     internal.lastDistances.at hId .= fmap distance route
+    tar2 <- use $ internal.target
+    lputs $ "new target id: " ++ show tar2
 
   process _ _ = do
     -- lose target
     tar <- use $ internal.target
-    flip (maybe (return ())) tar $ \t ->
+    flip (maybe (return ())) tar $ \t -> do
+      lputs "losing player target"
       internal.lastDistances.at t .= Nothing
     internal.target .= Nothing

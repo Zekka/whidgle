@@ -64,6 +64,7 @@ data Internal = Internal
   , _lastDistances :: M.Map HeroId Int
   , _target :: Maybe HeroId
   }
+  deriving (Show)
 
 data Activity = Activity
   { _activityGame    :: Game

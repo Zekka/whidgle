@@ -55,14 +55,15 @@ scorePOI (POI location inner) = do
               maybe overwhelming distance . ($ place) . (routes M.!) . (^.heroId) $ x
             in
             [nearTo location, nearTo (we^.heroPos)]
-          )
+            )
+
+          . filter (not . (^.heroCrashed))
           -- and is also actually here
-          . not (^.heroCrashed)
           ) competition
       scoreBasic <- scoreMeta (distance r) acqTime inner
 
       return $ overTime time (min nearFuture (maxTime - time)) $
-        if any (< distance r + 2) lengths -- + 2 -- assume the action takes one turn
+        if any (all (< distance r + 2)) lengths -- + 2 -- assume the action takes one turn
           -- they can get us, so we lose our points
           then loseItAll we
           -- otherwise, nothing changes

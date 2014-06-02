@@ -119,7 +119,7 @@ loseItAll our = constant (-(gold . fromIntegral $ (our^.heroMineCount)))
 -- (TODO: Can we make this as generic as Num a => a -> Int without introducing
 -- annoying extra typeclasses?)
 gold :: (RealFrac a, Num a) => a -> Int
-gold = (*10) . floor
+gold = floor . (*10)
 
 -- Reads the board and determine what POIs are out there.
 getPOIs :: Whidgle [POI]
